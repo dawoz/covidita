@@ -119,6 +119,7 @@
             andamentoProvince: [],
             province: [],
             loadingError: false,
+            mobileAccess: false
         },
         methods: {
             getData: function () {
@@ -206,12 +207,14 @@
                         orientation: 'h',
                         x: 0,
                         y: -0.15
-                    }
+                    },
+                    xaxis: {fixedrange: this.mobileAccess},
+                    yaxis: {fixedrange: this.mobileAccess}
                 };
                 var config = {
                     noJs: true,
                     responsive: true,
-                    // scrollZoom: true,
+                    scrollZoom: this.mobileAccess,
                     displaylogo: false,
                     displayModeBar: true,
                     modeBarButtonsToRemove: ['toImage', 'zoom2d', 'pan2d', 'zoomIn2d', 'zoomOut2d', 'autoScale2d', 'hoverClosestCartesian', 'hoverCompareCartesian', 'toggleSpikelines']
@@ -256,12 +259,14 @@
                         orientation: 'h',
                         x: 0,
                         y: -0.15
-                    }
+                    },
+                    xaxis: {fixedrange: this.mobileAccess},
+                    yaxis: {fixedrange: this.mobileAccess}
                 };
                 var config = {
                     noJs: true,
                     responsive: true,
-                    // scrollZoom: true,
+                    scrollZoom: this.mobileAccess,
                     displaylogo: false,
                     displayModeBar: true,
                     modeBarButtonsToRemove: ['toImage', 'zoom2d', 'pan2d', 'zoomIn2d', 'zoomOut2d', 'autoScale2d', 'hoverClosestCartesian', 'hoverCompareCartesian', 'toggleSpikelines']
@@ -320,7 +325,8 @@
             }
         },
         mounted() {
-            this.getData()
+            this.getData();
+            this.mobileAccess = ( ( window.innerWidth <= 800 ) && ( window.innerHeight <= 600 ) )
         }
     })
 

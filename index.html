@@ -89,12 +89,27 @@
 
     <div class="px-lg-5"><div id="andamentoRegioni"></div></div>
 
+    <p v-if="this.inconsistenzaRegione" class="text-center text-danger small">
+        Attenzione: potrebbe esserci un'inconsistenza nei dati su "Nuovi tamponi"
+    </p>
+
     <div v-if="this.andamentoRegioni.length>0" class="px-lg-5 px-5 input-group input-group-sm mb-3">
         <div class="input-group-prepend">
             <label class="input-group-text" for="regioneSelect">Regione</label>
         </div>
-        <select id="regioneSelect" class="custom-select custom-select-sm col-sm-1" v-on:change="this.updateRegione">
+        <select id="regioneSelect" class="custom-select custom-select-sm col-sm-2" v-on:change="this.updateRegione">
             <option v-for="r in this.regioni">{{ r }}</option>
+        </select>
+    </div>
+
+    <div class="px-lg-5"><div id="andamentoProvince"></div></div>
+
+    <div v-if="this.andamentoProvince.length>0" class="px-lg-5 px-5 input-group input-group-sm mb-3">
+        <div class="input-group-prepend">
+            <label class="input-group-text" for="provinciaSelect">Provincia</label>
+        </div>
+        <select id="provinciaSelect" class="custom-select custom-select-sm col-sm-2" v-on:change="this.updateProvincia">
+            <option v-for="r in this.province">{{ r }}</option>
         </select>
     </div>
 
@@ -115,6 +130,7 @@
             urlAndamentoRegioni: 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-json/dpc-covid19-ita-regioni.json',
             andamentoRegioni: [],
             regioni: [],
+            inconsistenzaRegione: false,
             urlAndamentoProvince: 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-json/dpc-covid19-ita-province.json',
             andamentoProvince: [],
             province: [],
@@ -143,7 +159,7 @@
                 $.get(this.urlAndamentoProvince, function (data) {
                     self.andamentoProvince = JSON.parse(data);
                     self.processAndamentoProvince();
-                    self.plotAndamentoProvince();
+                    self.plotAndamentoProvince(self.province[0]);
                 }).fail(function () {
                     self.loadingError = true
                 });
@@ -209,12 +225,12 @@
                         y: -0.15
                     },
                     xaxis: {fixedrange: this.mobileAccess},
-                    yaxis: {fixedrange: this.mobileAccess}
+                    yaxis: {fixedrange: this.mobileAccess},
                 };
                 var config = {
                     noJs: true,
                     responsive: true,
-                    scrollZoom: this.mobileAccess,
+                    scrollZoom: false,
                     displaylogo: false,
                     displayModeBar: true,
                     modeBarButtonsToRemove: ['toImage', 'zoom2d', 'pan2d', 'zoomIn2d', 'zoomOut2d', 'autoScale2d', 'hoverClosestCartesian', 'hoverCompareCartesian', 'toggleSpikelines']
@@ -224,13 +240,15 @@
                     x: this.data,
                     y: this.andamentoNazionale.map(e => e.totale_positivi),
                     type: 'scatter',
-                    name: 'Totale positivi'
+                    name: 'Totale positivi',
+                    line: {shape: 'spline'}
                 };
                 var nuoviPositiviTrace = {
                     x: this.data,
                     y: this.andamentoNazionale.map(e => e.nuovi_positivi),
                     type: 'scatter',
-                    name: 'Nuovi positivi'
+                    name: 'Nuovi positivi',
+                    line: {shape: 'spline'}
                 };
                 var nuoviTamponi = [];
                 var tamponi = this.andamentoNazionale.map(e => e.tamponi);
@@ -245,7 +263,8 @@
                     y: nuoviTamponi,
                     type: 'scatter',
                     name: 'Nuovi tamponi',
-                    visible: 'legendonly'
+                    visible: 'legendonly',
+                    line: {shape: 'spline'}
                 };
 
                 Plotly.newPlot('andamentoNazionale', [totalePositiviTrace, nuoviPositiviTrace, nuoviTamponiTrace], layout, config);
@@ -261,12 +280,12 @@
                         y: -0.15
                     },
                     xaxis: {fixedrange: this.mobileAccess},
-                    yaxis: {fixedrange: this.mobileAccess}
+                    yaxis: {fixedrange: this.mobileAccess},
                 };
                 var config = {
                     noJs: true,
                     responsive: true,
-                    scrollZoom: this.mobileAccess,
+                    scrollZoom: false,
                     displaylogo: false,
                     displayModeBar: true,
                     modeBarButtonsToRemove: ['toImage', 'zoom2d', 'pan2d', 'zoomIn2d', 'zoomOut2d', 'autoScale2d', 'hoverClosestCartesian', 'hoverCompareCartesian', 'toggleSpikelines']
@@ -276,13 +295,15 @@
                     x: this.data,
                     y: this.andamentoRegioni.filter(e => e.denominazione_regione===regione).map(e => e.totale_positivi),
                     type: 'scatter',
-                    name: 'Totale positivi'
+                    name: 'Totale positivi',
+                    line: {shape: 'spline'}
                 };
                 var nuoviPositiviTrace = {
                     x: this.data,
                     y: this.andamentoRegioni.filter(e => e.denominazione_regione===regione).map(e => e.nuovi_positivi),
                     type: 'scatter',
-                    name: 'Nuovi positivi'
+                    name: 'Nuovi positivi',
+                    line: {shape: 'spline'}
                 };
 
                 var nuoviTamponi = [];
@@ -292,24 +313,59 @@
                         nuoviTamponi.push(tamponi[i])
                     else
                         nuoviTamponi.push(tamponi[i] - tamponi[i-1]);
+                    this.inconsistenzaRegione |= nuoviTamponi[nuoviTamponi.length-1] < 0;
                 }
                 var nuoviTamponiTrace = {
                     x: this.data,
                     y: nuoviTamponi,
                     type: 'scatter',
                     name: 'Nuovi tamponi',
-                    visible: 'legendonly'
+                    visible: 'legendonly',
+                    line: {shape: 'spline'}
                 };
 
                 Plotly.newPlot('andamentoRegioni', [totalePositiviTrace, nuoviPositiviTrace, nuoviTamponiTrace], layout, config);
             },
             updateRegione: function () {
                 var regione = $('#regioneSelect').find(':selected').text();
+                this.inconsistenzaRegione = false;
                 this.plotAndamentoRegioni(regione);
             },
-            plotAndamentoProvince: function () {
+            plotAndamentoProvince: function (provincia) {
+                var layout = {
+                    title: 'Andamento provincia di ' + provincia,
+                    margin: {l: 50, t: 50, b: 100, r: 50},
+                    showlegend: true,
+                    legend: {
+                        orientation: 'h',
+                        x: 0,
+                        y: -0.15
+                    },
+                    xaxis: {fixedrange: this.mobileAccess},
+                    yaxis: {fixedrange: this.mobileAccess},
+                };
+                var config = {
+                    noJs: true,
+                    responsive: true,
+                    scrollZoom: false,
+                    displaylogo: false,
+                    displayModeBar: true,
+                    modeBarButtonsToRemove: ['toImage', 'zoom2d', 'pan2d', 'zoomIn2d', 'zoomOut2d', 'autoScale2d', 'hoverClosestCartesian', 'hoverCompareCartesian', 'toggleSpikelines']
+                };
 
-            }
+                var totaleCasi = {
+                    x: this.data,
+                    y: this.andamentoProvince.filter(e => e.denominazione_provincia===provincia).map(e => e.totale_casi),
+                    type: 'scatter',
+                    name: 'Totale casi',
+                    line: {shape: 'spline'}
+                };
+                Plotly.newPlot('andamentoProvince', [totaleCasi], layout, config);
+            },
+            updateProvincia: function () {
+                var provincia = $('#provinciaSelect').find(':selected').text();
+                this.plotAndamentoProvince(provincia);
+            },
         },
         filters: {
             formatDateDDMMYYYY: function (dateString) {

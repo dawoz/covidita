@@ -89,7 +89,7 @@
 
     <div class="px-lg-5"><div id="andamentoRegioni"></div></div>
 
-    <p v-if="this.inconsistenzaRegione" class="text-center text-danger small">
+    <p v-if="this.inconsistenzaRegione" class="text-center text-danger small mx-2">
         Attenzione: potrebbe esserci un'inconsistenza nei dati su "Nuovi tamponi"
     </p>
 
@@ -208,11 +208,11 @@
 
                 var prov = new Set();
                 for (e of this.andamentoProvince) {
-                    if (e.sigla_provincia != null && !prov.has(e.denominazione_provincia)) {
-                        prov.add(e.denominazione_provincia);
-                        this.province.push(e.denominazione_provincia);
-                    }
+                    if (e.sigla_provincia != null)
+                        prov.add(e.denominazione_provincia)
                 }
+                this.province = Array.from(prov);
+                this.province.sort();
             },
             plotAndamentoNazionale: function () {
                 var layout = {

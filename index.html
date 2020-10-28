@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Covid</title>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <noscript>
+        <style>
+            body *{
+                visibility: hidden;
+            }
+            #noJs#noJs * {
+                visibility: visible;
+            }
+        </style>
+        <div class="row m-5" id="noJs">
+            <div class="col"></div>
+            <div class="col">
+                <div class="card p-4">
+                    <p class="text-danger text-center">JavaScript è disabilitato. Controlla le impostazioni del browser</p>
+                </div>
+            </div>
+            <div class="col"></div>
+        </div>
+    </noscript>
+
+</head>
+<body class="bg-dark p-lg-5 p-md-4">
+
+<div class="card m-lg-5 p-md-4 m-2 shadow-lg" id="app">
+
+    <div class="row m-5" v-if="loadingError">
+        <div class="col"></div>
+        <div class="col">
+            <p class="text-danger text-center">Il caricamento non è andato a buon fine...</p>
+            <p class="text-danger text-center">Prova più tardi</p>
+        </div>
+        <div class="col"></div>
+    </div>
+
+    <div class="container-fluid py-5 my-2 my-lg-5" v-if="this.andamentoNazionale.length===0">
+        <div class="row">
+            <div class="col"></div>
+            <div class="col text-center">
+                <div class="spinner-border m-2" role="status">
+                    <span class="sr-only">Loading...</span></div>
+            </div>
+            <div class="col"></div>
+        </div>
+        <div class="row">
+            <div class="col"></div>
+            <div class="col">
+                <p class="text-dark text-center">Caricamento</p>
+            </div>
+            <div class="col"></div>
+        </div>
+    </div>
+
+    <div class="p-3" v-else>
+        <h2>Andamento pandemia COVID-19 in Italia</h2>
+        <p class="text-secondary">Dati aggiornati al {{ this.andamentoNazionale[this.andamentoNazionale.length-1].data | formatDateDDMMYYYY }}</p>
+    </div>
+
+    <div class="px-lg-5"><div id="andamentoNazionale"></div></div>
+
+    <div class="my-5 mx-auto w-75">
+        <table v-if="this.andamentoNazionaleLatest!==null" class="table table-striped table-sm">
+            <thead class="thead-dark">
+            <tr>
+                <th scope="col" class="pl-lg-5">Descrizione</th>
+                <th scope="col" class="text-center">Dato</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="[key,value] in Object.entries(this.andamentoNazionaleLatest)">
+                <th scope="col" class="pl-lg-5">{{ key | formatString }}</th>
+                <td class="text-center">{{ value | formatNumber }}</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="px-lg-5"><div id="andamentoRegioni"></div></div>
+
+    <div v-if="this.andamentoRegioni.length>0" class="px-lg-5 px-5 input-group input-group-sm mb-3">
+        <div class="input-group-prepend">
+            <label class="input-group-text" for="regioneSelect">Regione</label>
+        </div>
+        <select id="regioneSelect" class="custom-select custom-select-sm col-sm-1" v-on:change="this.updateRegione">
+            <option v-for="r in this.regioni">{{ r }}</option>
+        </select>
+    </div>
+
+
+</div>
+
+</body>
+
+<script>
+
+    var app = new Vue({
+        el: '#app',
+        data: {
+            urlAndamentoNazionale: 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-json/dpc-covid19-ita-andamento-nazionale.json',
+            andamentoNazionale: [],
+            data: [],
+            andamentoNazionaleLatest: null,
+            urlAndamentoRegioni: 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-json/dpc-covid19-ita-regioni.json',
+            andamentoRegioni: [],
+            regioni: [],
+            urlAndamentoProvince: 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-json/dpc-covid19-ita-province.json',
+            andamentoProvince: [],
+            province: [],
+            loadingError: false,
+        },
+        methods: {
+            getData: function () {
+                var self = this;
+                $.get(this.urlAndamentoNazionale, function (data) {
+                    self.andamentoNazionale = JSON.parse(data);
+                    self.processAndamentoNazionale();
+                    self.plotAndamentoNazionale();
+                }).fail(function () {
+                    self.loadingError = true
+                });
+
+                $.get(this.urlAndamentoRegioni, function (data) {
+                    self.andamentoRegioni = JSON.parse(data);
+                    self.processAndamentoRegioni();
+                    self.plotAndamentoRegioni(self.regioni[0]);
+                }).fail(function () {
+                    self.loadingError = true
+                });
+
+                $.get(this.urlAndamentoProvince, function (data) {
+                    self.andamentoProvince = JSON.parse(data);
+                    self.processAndamentoProvince();
+                    self.plotAndamentoProvince();
+                }).fail(function () {
+                    self.loadingError = true
+                });
+            },
+            processAndamentoNazionale: function () {
+                if (this.data.length === 0)
+                    this.data = this.andamentoNazionale.map(e => e.data);
+
+                var categorie = new Set([
+                    "ricoverati_con_sintomi",
+                    "terapia_intensiva",
+                    "totale_ospedalizzati",
+                    "isolamento_domiciliare",
+                    "totale_positivi",
+                    "variazione_totale_positivi",
+                    "nuovi_positivi",
+                    "dimessi_guariti",
+                    "deceduti",
+                    "casi_da_sospetto_diagnostico",
+                    "casi_da_screening",
+                    "totale_casi",
+                    "tamponi",
+                    "casi_testati"
+                ]);
+
+                this.andamentoNazionaleLatest = {};
+                for ([key, value] of Object.entries(this.andamentoNazionale[this.andamentoNazionale.length-1]))
+                    if (categorie.has(key.toString()))
+                        this.andamentoNazionaleLatest[key] = value;
+            },
+            processAndamentoRegioni: function () {
+                if (this.data.length === 0)
+                    this.data = this.andamentoNazionale.map(e => e.data);
+
+                var reg = new Set();
+                for (var e of this.andamentoRegioni) {
+                    if (reg.has(e.denominazione_regione))
+                        break;
+                    reg.add(e.denominazione_regione);
+                    this.regioni.push(e.denominazione_regione);
+                }
+            },
+            processAndamentoProvince: function () {
+                if (this.data.length === 0)
+                    this.data = this.andamentoNazionale.map(e => e.data);
+
+                var prov = new Set();
+                for (e of this.andamentoProvince) {
+                    if (e.sigla_provincia != null && !prov.has(e.denominazione_provincia)) {
+                        prov.add(e.denominazione_provincia);
+                        this.province.push(e.denominazione_provincia);
+                    }
+                }
+            },
+            plotAndamentoNazionale: function () {
+                var layout = {
+                    title: 'Andamento nazionale',
+                    margin: {l: 50, t: 50, b: 100, r: 50},
+                    showlegend: true,
+                    legend: {
+                        orientation: 'h',
+                        x: 0,
+                        y: -0.15
+                    }
+                };
+                var config = {
+                    noJs: true,
+                    responsive: true,
+                    // scrollZoom: true,
+                    displaylogo: false,
+                    displayModeBar: true,
+                    modeBarButtonsToRemove: ['toImage', 'zoom2d', 'pan2d', 'zoomIn2d', 'zoomOut2d', 'autoScale2d', 'hoverClosestCartesian', 'hoverCompareCartesian', 'toggleSpikelines']
+                };
+
+                var totalePositiviTrace = {
+                    x: this.data,
+                    y: this.andamentoNazionale.map(e => e.totale_positivi),
+                    type: 'scatter',
+                    name: 'Totale positivi'
+                };
+                var nuoviPositiviTrace = {
+                    x: this.data,
+                    y: this.andamentoNazionale.map(e => e.nuovi_positivi),
+                    type: 'scatter',
+                    name: 'Nuovi positivi'
+                };
+                var nuoviTamponi = [];
+                var tamponi = this.andamentoNazionale.map(e => e.tamponi);
+                for (var i = 0; i < tamponi.length; i++) {
+                    if (i === 0)
+                        nuoviTamponi.push(tamponi[i])
+                    else
+                        nuoviTamponi.push(tamponi[i] - tamponi[i-1]);
+                }
+                var nuoviTamponiTrace = {
+                    x: this.data,
+                    y: nuoviTamponi,
+                    type: 'scatter',
+                    name: 'Nuovi tamponi',
+                    visible: 'legendonly'
+                };
+
+                Plotly.newPlot('andamentoNazionale', [totalePositiviTrace, nuoviPositiviTrace, nuoviTamponiTrace], layout, config);
+            },
+            plotAndamentoRegioni: function (regione) {
+                var layout = {
+                    title: 'Andamento regione ' + regione,
+                    margin: {l: 50, t: 50, b: 100, r: 50},
+                    showlegend: true,
+                    legend: {
+                        orientation: 'h',
+                        x: 0,
+                        y: -0.15
+                    }
+                };
+                var config = {
+                    noJs: true,
+                    responsive: true,
+                    // scrollZoom: true,
+                    displaylogo: false,
+                    displayModeBar: true,
+                    modeBarButtonsToRemove: ['toImage', 'zoom2d', 'pan2d', 'zoomIn2d', 'zoomOut2d', 'autoScale2d', 'hoverClosestCartesian', 'hoverCompareCartesian', 'toggleSpikelines']
+                };
+
+                var totalePositiviTrace = {
+                    x: this.data,
+                    y: this.andamentoRegioni.filter(e => e.denominazione_regione===regione).map(e => e.totale_positivi),
+                    type: 'scatter',
+                    name: 'Totale positivi'
+                };
+                var nuoviPositiviTrace = {
+                    x: this.data,
+                    y: this.andamentoRegioni.filter(e => e.denominazione_regione===regione).map(e => e.nuovi_positivi),
+                    type: 'scatter',
+                    name: 'Nuovi positivi'
+                };
+
+                var nuoviTamponi = [];
+                var tamponi = this.andamentoRegioni.filter(e => e.denominazione_regione===regione).map(e => e.tamponi);
+                for (var i = 0; i < tamponi.length; i++) {
+                    if (i === 0)
+                        nuoviTamponi.push(tamponi[i])
+                    else
+                        nuoviTamponi.push(tamponi[i] - tamponi[i-1]);
+                }
+                var nuoviTamponiTrace = {
+                    x: this.data,
+                    y: nuoviTamponi,
+                    type: 'scatter',
+                    name: 'Nuovi tamponi',
+                    visible: 'legendonly'
+                };
+
+                Plotly.newPlot('andamentoRegioni', [totalePositiviTrace, nuoviPositiviTrace, nuoviTamponiTrace], layout, config);
+            },
+            updateRegione: function () {
+                var regione = $('#regioneSelect').find(':selected').text();
+                this.plotAndamentoRegioni(regione);
+            },
+            plotAndamentoProvince: function () {
+
+            }
+        },
+        filters: {
+            formatDateDDMMYYYY: function (dateString) {
+                var date = new Date(dateString);
+                return date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear();
+            },
+            formatString: function (str) {
+                var strSpaces = str.replaceAll('_', ' ');
+                return strSpaces.charAt(0).toUpperCase() + strSpaces.substr(1, strSpaces.length);
+            },
+            formatNumber: function (n) {
+                return Intl.NumberFormat().format(n);
+            }
+        },
+        mounted() {
+            this.getData()
+        }
+    })
+
+</script>
+
+</html>

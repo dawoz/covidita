@@ -15,6 +15,9 @@
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
+    <script src="https://cdn.plot.ly/plotly-locale-it-latest.js"></script>
+    <script>Plotly.setPlotConfig({locale: 'it'})</script>
+
     <noscript>
         <style>
             body *{
@@ -90,7 +93,7 @@
     <div class="px-lg-5"><div id="andamentoRegioni"></div></div>
 
     <p v-if="this.inconsistenzaRegione" class="text-center text-danger small mx-2">
-        Attenzione: potrebbe esserci un'inconsistenza nei dati su "Nuovi tamponi"
+        La traccia "Nuovi tamponi" presenta dei dati incongruenti: potrebbe esserci stato un riconteggio e una correzione in date successive
     </p>
 
     <div v-if="this.andamentoRegioni.length>0" class="px-lg-5 px-5 input-group input-group-sm mb-3">
@@ -223,9 +226,7 @@
                         orientation: 'h',
                         x: 0,
                         y: -0.15
-                    },
-                    xaxis: {fixedrange: this.mobileAccess},
-                    yaxis: {fixedrange: this.mobileAccess},
+                    }
                 };
                 var config = {
                     noJs: true,
@@ -233,8 +234,13 @@
                     scrollZoom: false,
                     displaylogo: false,
                     displayModeBar: true,
-                    modeBarButtonsToRemove: ['toImage', 'zoom2d', 'pan2d', 'zoomIn2d', 'zoomOut2d', 'autoScale2d', 'hoverClosestCartesian', 'hoverCompareCartesian', 'toggleSpikelines']
+                    modeBarButtonsToRemove: ['toImage', 'zoomIn2d', 'zoomOut2d', 'autoScale2d', 'hoverClosestCartesian', 'hoverCompareCartesian', 'toggleSpikelines']
                 };
+                if (this.mobileAccess) {
+                    config.modeBarButtonsToRemove.add('resetScale2d');
+                    config.modeBarButtonsToRemove.add('pan2d');
+                    config.modeBarButtonsToRemove.add('zoom2d');
+                }
 
                 var totalePositiviTrace = {
                     x: this.data,
@@ -278,9 +284,7 @@
                         orientation: 'h',
                         x: 0,
                         y: -0.15
-                    },
-                    xaxis: {fixedrange: this.mobileAccess},
-                    yaxis: {fixedrange: this.mobileAccess},
+                    }
                 };
                 var config = {
                     noJs: true,
@@ -288,8 +292,13 @@
                     scrollZoom: false,
                     displaylogo: false,
                     displayModeBar: true,
-                    modeBarButtonsToRemove: ['toImage', 'zoom2d', 'pan2d', 'zoomIn2d', 'zoomOut2d', 'autoScale2d', 'hoverClosestCartesian', 'hoverCompareCartesian', 'toggleSpikelines']
+                    modeBarButtonsToRemove: ['toImage', 'zoomIn2d', 'zoomOut2d', 'autoScale2d', 'hoverClosestCartesian', 'hoverCompareCartesian', 'toggleSpikelines']
                 };
+                if (this.mobileAccess) {
+                    config.modeBarButtonsToRemove.add('resetScale2d');
+                    config.modeBarButtonsToRemove.add('pan2d');
+                    config.modeBarButtonsToRemove.add('zoom2d');
+                }
 
                 var totalePositiviTrace = {
                     x: this.data,
@@ -340,9 +349,7 @@
                         orientation: 'h',
                         x: 0,
                         y: -0.15
-                    },
-                    xaxis: {fixedrange: this.mobileAccess},
-                    yaxis: {fixedrange: this.mobileAccess},
+                    }
                 };
                 var config = {
                     noJs: true,
@@ -350,8 +357,13 @@
                     scrollZoom: false,
                     displaylogo: false,
                     displayModeBar: true,
-                    modeBarButtonsToRemove: ['toImage', 'zoom2d', 'pan2d', 'zoomIn2d', 'zoomOut2d', 'autoScale2d', 'hoverClosestCartesian', 'hoverCompareCartesian', 'toggleSpikelines']
+                    modeBarButtonsToRemove: ['toImage', 'zoomIn2d', 'zoomOut2d', 'autoScale2d', 'hoverClosestCartesian', 'hoverCompareCartesian', 'toggleSpikelines']
                 };
+                if (this.mobileAccess) {
+                    config.modeBarButtonsToRemove.add('resetScale2d');
+                    config.modeBarButtonsToRemove.add('pan2d');
+                    config.modeBarButtonsToRemove.add('zoom2d');
+                }
 
                 var totaleCasi = {
                     x: this.data,

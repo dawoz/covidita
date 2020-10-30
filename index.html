@@ -243,8 +243,7 @@
                 var layout = {
                     title: {
                         text: 'Andamento nazionale',
-                        xanchor: this.mobileAccess ? 'left' : 'center',
-                        x: this.mobileAccess ? 0.1 : 0.5
+                        y: this.mobileAccess ? 1.2 : 1
                     },
                     margin: {l: 50, t: 50, b: 100, r: 50},
                     showlegend: true,
@@ -300,8 +299,7 @@
                 var layout = {
                     title: {
                         text: 'Andamento regione ' + regione,
-                        xanchor: this.mobileAccess ? 'left' : 'center',
-                        x: this.mobileAccess ? 0.1 : 0.5
+                        y: this.mobileAccess ? 1.2 : 1
                     },
                     margin: {l: 50, t: 50, b: 100, r: 50},
                     showlegend: true,
@@ -364,8 +362,7 @@
                 var layout = {
                     title: {
                         text: 'Andamento provincia di\n' + provincia,
-                        xanchor: this.mobileAccess ? 'left' : 'center',
-                        x: this.mobileAccess ? 0.1 : 0.5
+                        y: this.mobileAccess ? 1.2 : 1
                     },
                     margin: {l: 50, t: 50, b: 100, r: 50},
                     showlegend: true,
@@ -401,11 +398,11 @@
                 var nuoviDeceduti = this.andamentoNazionale[this.andamentoNazionale.length-1].deceduti -
                     this.andamentoNazionale[this.andamentoNazionale.length-2].deceduti;
                 this.percentuali.decessi_per_caso_positivo = nuoviDeceduti /
-                    this.andamentoNazionale[this.andamentoNazionale.length-2].totale_positivi;
+                    this.andamentoNazionale[this.andamentoNazionale.length-2].totale_positivi * 100;
 
                 this.percentuali.ospedalizzati_per_caso_positivo =
                     this.andamentoNazionale[this.andamentoNazionale.length-1].totale_ospedalizzati /
-                        this.andamentoNazionale[this.andamentoNazionale.length-2].totale_positivi;
+                        this.andamentoNazionale[this.andamentoNazionale.length-2].totale_positivi * 100;
             }
         },
         filters: {

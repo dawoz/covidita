@@ -68,7 +68,7 @@
 
     <div class="p-3" v-else>
         <h2>Andamento pandemia COVID-19 in Italia</h2>
-        <p class="text-secondary">Dati aggiornati al {{ this.andamentoNazionale[this.andamentoNazionale.length-1].data | formatDateDDMMYYYY }}</p>
+        <p class="text-secondary">Dati aggiornati al {{ getFromEnd(this.andamentoNazionale,-1).data | formatDateDDMMYYYY }}</p>
     </div>
 
     <div class="px-lg-5"><div id="andamentoNazionale"></div></div>
@@ -142,6 +142,47 @@
 </body>
 
 <script>
+    const getFromEnd = function (array, index) {
+        if (!(array instanceof Array))
+            throw 'First parameter must be an array'
+        if (typeof index !== 'number' || index >= 0 || index < -array.length)
+            throw 'Index must be a number in range [-array.length, -1]'
+        return array[array.length+index];
+    };
+
+    const getLayout = function (title) {
+        return {
+            title: title,
+            margin: {l: 50, t: 50, b: 100, r: 50},
+            showlegend: true,
+            legend: {
+                orientation: 'h',
+                x: 0,
+                y: -0.15
+            }
+        }
+    };
+
+    const getConfig = function () {
+        return {
+            noJs: true,
+            responsive: true,
+            scrollZoom: false,
+            displaylogo: false,
+            displayModeBar: true,
+            modeBarButtonsToRemove: ['toImage', 'zoomIn2d', 'zoomOut2d', 'autoScale2d', 'hoverClosestCartesian', 'hoverCompareCartesian', 'toggleSpikelines']
+        }
+    };
+
+    const getTrace = function (title, y) {
+        return {
+            x: this.data,
+            y: y,
+            type: 'scatter',
+            name: 'Totale positivi',
+            line: { shape: 'spline' }
+        }
+    };
 
     var app = new Vue({
         el: '#app',
@@ -162,6 +203,7 @@
             percentuali: {}
         },
         methods: {
+            getFromEnd: getFromEnd,
             getData: function () {
                 var self = this;
                 $.get(this.urlAndamentoNazionale, function (data) {
@@ -211,7 +253,7 @@
                 ]);
 
                 this.andamentoNazionaleLatest = {};
-                for ([key, value] of Object.entries(this.andamentoNazionale[this.andamentoNazionale.length-1]))
+                for ([key, value] of Object.entries(getFromEnd(this.andamentoNazionale,-1)))
                     if (categorie.has(key.toString()))
                         this.andamentoNazionaleLatest[key] = value;
             },
@@ -240,42 +282,6 @@
                 this.province.sort();
             },
             plotAndamentoNazionale: function () {
-                var layout = {
-                    title: {
-                        text: 'Andamento nazionale',
-                        y: this.mobileAccess ? 1.2 : 1
-                    },
-                    margin: {l: 50, t: 50, b: 100, r: 50},
-                    showlegend: true,
-                    legend: {
-                        orientation: 'h',
-                        x: 0,
-                        y: -0.15
-                    }
-                };
-                var config = {
-                    noJs: true,
-                    responsive: true,
-                    scrollZoom: false,
-                    displaylogo: false,
-                    displayModeBar: true,
-                    modeBarButtonsToRemove: ['toImage', 'zoomIn2d', 'zoomOut2d', 'autoScale2d', 'hoverClosestCartesian', 'hoverCompareCartesian', 'toggleSpikelines']
-                };
-
-                var totalePositiviTrace = {
-                    x: this.data,
-                    y: this.andamentoNazionale.map(e => e.totale_positivi),
-                    type: 'scatter',
-                    name: 'Totale positivi',
-                    line: {shape: 'spline'}
-                };
-                var nuoviPositiviTrace = {
-                    x: this.data,
-                    y: this.andamentoNazionale.map(e => e.nuovi_positivi),
-                    type: 'scatter',
-                    name: 'Nuovi positivi',
-                    line: {shape: 'spline'}
-                };
                 var nuoviTamponi = [];
                 var tamponi = this.andamentoNazionale.map(e => e.tamponi);
                 for (var i = 0; i < tamponi.length; i++) {
@@ -284,55 +290,17 @@
                     else
                         nuoviTamponi.push(tamponi[i] - tamponi[i-1]);
                 }
-                var nuoviTamponiTrace = {
-                    x: this.data,
-                    y: nuoviTamponi,
-                    type: 'scatter',
-                    name: 'Nuovi tamponi',
-                    visible: 'legendonly',
-                    line: {shape: 'spline'}
-                };
 
-                Plotly.newPlot('andamentoNazionale', [totalePositiviTrace, nuoviPositiviTrace, nuoviTamponiTrace], layout, config);
+                var traces = [
+                    getTrace('Totale positivi', this.andamentoNazionale.map(e => e.totale_positivi)),
+                    getTrace('Nuovi positivi', this.andamentoNazionale.map(e => e.nuovi_positivi)),
+                    getTrace('Nuovi tamponi', nuoviTamponi)
+                ];
+                traces[2].visible = 'legendonly';
+
+                Plotly.newPlot('andamentoNazionale', traces, getLayout('Andamento nazionale'), getConfig());
             },
             plotAndamentoRegioni: function (regione) {
-                var layout = {
-                    title: {
-                        text: 'Andamento regione ' + regione,
-                        y: this.mobileAccess ? 1.2 : 1
-                    },
-                    margin: {l: 50, t: 50, b: 100, r: 50},
-                    showlegend: true,
-                    legend: {
-                        orientation: 'h',
-                        x: 0,
-                        y: -0.15
-                    }
-                };
-                var config = {
-                    noJs: true,
-                    responsive: true,
-                    scrollZoom: false,
-                    displaylogo: false,
-                    displayModeBar: true,
-                    modeBarButtonsToRemove: ['toImage', 'zoomIn2d', 'zoomOut2d', 'autoScale2d', 'hoverClosestCartesian', 'hoverCompareCartesian', 'toggleSpikelines']
-                };
-
-                var totalePositiviTrace = {
-                    x: this.data,
-                    y: this.andamentoRegioni.filter(e => e.denominazione_regione===regione).map(e => e.totale_positivi),
-                    type: 'scatter',
-                    name: 'Totale positivi',
-                    line: {shape: 'spline'}
-                };
-                var nuoviPositiviTrace = {
-                    x: this.data,
-                    y: this.andamentoRegioni.filter(e => e.denominazione_regione===regione).map(e => e.nuovi_positivi),
-                    type: 'scatter',
-                    name: 'Nuovi positivi',
-                    line: {shape: 'spline'}
-                };
-
                 var nuoviTamponi = [];
                 var tamponi = this.andamentoRegioni.filter(e => e.denominazione_regione===regione).map(e => e.tamponi);
                 for (var i = 0; i < tamponi.length; i++) {
@@ -340,18 +308,17 @@
                         nuoviTamponi.push(tamponi[i])
                     else
                         nuoviTamponi.push(tamponi[i] - tamponi[i-1]);
-                    this.inconsistenzaRegione |= nuoviTamponi[nuoviTamponi.length-1] < 0;
+                    this.inconsistenzaRegione |= getFromEnd(nuoviTamponi,-1) < 0;
                 }
-                var nuoviTamponiTrace = {
-                    x: this.data,
-                    y: nuoviTamponi,
-                    type: 'scatter',
-                    name: 'Nuovi tamponi',
-                    visible: 'legendonly',
-                    line: {shape: 'spline'}
-                };
 
-                Plotly.newPlot('andamentoRegioni', [totalePositiviTrace, nuoviPositiviTrace, nuoviTamponiTrace], layout, config);
+                var traces = [
+                    getTrace('Totale positivi', this.andamentoRegioni.filter(e => e.denominazione_regione===regione).map(e => e.totale_positivi)),
+                    getTrace('Nuovi positivi', this.andamentoRegioni.filter(e => e.denominazione_regione===regione).map(e => e.nuovi_positivi)),
+                    getTrace('Nuovi tamponi', nuoviTamponi)
+                ];
+                traces[2].visible = 'legendonly';
+
+                Plotly.newPlot('andamentoRegioni', traces, getLayout('Andamento regione ' + regione), getConfig());
             },
             updateRegione: function () {
                 var regione = $('#regioneSelect').find(':selected').text();
@@ -359,50 +326,30 @@
                 this.plotAndamentoRegioni(regione);
             },
             plotAndamentoProvince: function (provincia) {
-                var layout = {
-                    title: {
-                        text: 'Andamento provincia di\n' + provincia,
-                        y: this.mobileAccess ? 1.2 : 1
-                    },
-                    margin: {l: 50, t: 50, b: 100, r: 50},
-                    showlegend: true,
-                    legend: {
-                        orientation: 'h',
-                        x: 0,
-                        y: -0.15
-                    }
-                };
-                var config = {
-                    noJs: true,
-                    responsive: true,
-                    scrollZoom: false,
-                    displaylogo: false,
-                    displayModeBar: true,
-                    modeBarButtonsToRemove: ['toImage', 'zoomIn2d', 'zoomOut2d', 'autoScale2d', 'hoverClosestCartesian', 'hoverCompareCartesian', 'toggleSpikelines']
-                };
-
-                var totaleCasi = {
-                    x: this.data,
-                    y: this.andamentoProvince.filter(e => e.denominazione_provincia===provincia).map(e => e.totale_casi),
-                    type: 'scatter',
-                    name: 'Totale casi',
-                    line: {shape: 'spline'}
-                };
-                Plotly.newPlot('andamentoProvince', [totaleCasi], layout, config);
+                Plotly.newPlot(
+                    'andamentoProvince',
+                    [getTrace('Totale casi',this.andamentoProvince
+                        .filter(e => e.denominazione_provincia===provincia)
+                        .map(e => e.totale_casi))],
+                    getLayout('Andamento provincia di ' + provincia),
+                    getConfig());
             },
             updateProvincia: function () {
                 var provincia = $('#provinciaSelect').find(':selected').text();
                 this.plotAndamentoProvince(provincia);
             },
             processPercentuali: function () {
-                var nuoviDeceduti = this.andamentoNazionale[this.andamentoNazionale.length-1].deceduti -
-                    this.andamentoNazionale[this.andamentoNazionale.length-2].deceduti;
-                this.percentuali.decessi_per_caso_positivo = nuoviDeceduti /
-                    this.andamentoNazionale[this.andamentoNazionale.length-2].totale_positivi * 100;
+                var nuoviDeceduti = getFromEnd(this.andamentoNazionale,-1).deceduti - getFromEnd(this.andamentoNazionale,-2).deceduti;
+                this.percentuali.decessi_per_caso_positivo =
+                    nuoviDeceduti / getFromEnd(this.andamentoNazionale,-2).totale_positivi * 100;
 
                 this.percentuali.ospedalizzati_per_caso_positivo =
-                    this.andamentoNazionale[this.andamentoNazionale.length-1].totale_ospedalizzati /
-                        this.andamentoNazionale[this.andamentoNazionale.length-2].totale_positivi * 100;
+                    getFromEnd(this.andamentoNazionale,-1).totale_ospedalizzati /
+                    getFromEnd(this.andamentoNazionale,-1).totale_positivi * 100;
+
+                this.percentuali.terapia_intensiva_per_caso_positivo =
+                    getFromEnd(this.andamentoNazionale,-1).terapia_intensiva /
+                    getFromEnd(this.andamentoNazionale,-1).totale_positivi * 100;
             }
         },
         filters: {

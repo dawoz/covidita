@@ -167,9 +167,9 @@
         }
     };
 
-    const getTrace = function (title, y) {
+    const getTrace = function (title, x, y) {
         return {
-            x: this.data,
+            x: x,
             y: y,
             type: 'scatter',
             name: title,
@@ -276,9 +276,9 @@
             },
             plotAndamentoNazionale: function () {
                 var traces = [
-                    getTrace('Totale positivi', this.andamentoNazionale.map(e => e.totale_positivi)),
-                    getTrace('Nuovi positivi', this.andamentoNazionale.map(e => e.nuovi_positivi)),
-                    getTrace('Nuovi tamponi', diffArray(this.andamentoNazionale.map(e => e.tamponi)))
+                    getTrace('Totale positivi', this.data, this.andamentoNazionale.map(e => e.totale_positivi)),
+                    getTrace('Nuovi positivi', this.data, this.andamentoNazionale.map(e => e.nuovi_positivi)),
+                    getTrace('Nuovi tamponi', this.data, diffArray(this.andamentoNazionale.map(e => e.tamponi)))
                 ];
                 traces[2].visible = 'legendonly';
 
@@ -289,9 +289,9 @@
                 this.inconsistenzaRegione = nuoviTamponi.filter(e => e < 0).length > 0;
 
                 var traces = [
-                    getTrace('Totale positivi', this.andamentoRegioni.filter(e => e.denominazione_regione===regione).map(e => e.totale_positivi)),
-                    getTrace('Nuovi positivi', this.andamentoRegioni.filter(e => e.denominazione_regione===regione).map(e => e.nuovi_positivi)),
-                    getTrace('Nuovi tamponi', nuoviTamponi)
+                    getTrace('Totale positivi', this.data, this.andamentoRegioni.filter(e => e.denominazione_regione===regione).map(e => e.totale_positivi)),
+                    getTrace('Nuovi positivi', this.data, this.andamentoRegioni.filter(e => e.denominazione_regione===regione).map(e => e.nuovi_positivi)),
+                    getTrace('Nuovi tamponi', this.data, nuoviTamponi)
                 ];
                 traces[2].visible = 'legendonly';
 
@@ -305,7 +305,7 @@
             plotAndamentoProvince: function (provincia) {
                 Plotly.newPlot(
                     'andamentoProvince',
-                    [getTrace('Totale casi',this.andamentoProvince
+                    [getTrace('Totale casi', this.data, this.andamentoProvince
                         .filter(e => e.denominazione_provincia===provincia)
                         .map(e => e.totale_casi))],
                     getLayout('Andamento provincia di ' + provincia),

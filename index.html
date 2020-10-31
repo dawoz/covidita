@@ -141,15 +141,8 @@
 
 </body>
 
+<script src="utils.js"></script>
 <script>
-    const getFromEnd = function (array, index) {
-        if (!(array instanceof Array))
-            throw 'First parameter must be an array'
-        if (typeof index !== 'number' || index >= 0 || index < -array.length)
-            throw 'Index must be a number in range [-array.length, -1]'
-        return array[array.length+index];
-    };
-
     const getLayout = function (title) {
         return {
             title: title,
@@ -179,7 +172,7 @@
             x: this.data,
             y: y,
             type: 'scatter',
-            name: 'Totale positivi',
+            name: title,
             line: { shape: 'spline' }
         }
     };

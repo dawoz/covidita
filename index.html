@@ -275,34 +275,18 @@
                 this.province.sort();
             },
             plotAndamentoNazionale: function () {
-                var nuoviTamponi = [];
-                var tamponi = this.andamentoNazionale.map(e => e.tamponi);
-                for (var i = 0; i < tamponi.length; i++) {
-                    if (i === 0)
-                        nuoviTamponi.push(tamponi[i])
-                    else
-                        nuoviTamponi.push(tamponi[i] - tamponi[i-1]);
-                }
-
                 var traces = [
                     getTrace('Totale positivi', this.andamentoNazionale.map(e => e.totale_positivi)),
                     getTrace('Nuovi positivi', this.andamentoNazionale.map(e => e.nuovi_positivi)),
-                    getTrace('Nuovi tamponi', nuoviTamponi)
+                    getTrace('Nuovi tamponi', diffArray(this.andamentoNazionale.map(e => e.tamponi)))
                 ];
                 traces[2].visible = 'legendonly';
 
                 Plotly.newPlot('andamentoNazionale', traces, getLayout('Andamento nazionale'), getConfig());
             },
             plotAndamentoRegioni: function (regione) {
-                var nuoviTamponi = [];
-                var tamponi = this.andamentoRegioni.filter(e => e.denominazione_regione===regione).map(e => e.tamponi);
-                for (var i = 0; i < tamponi.length; i++) {
-                    if (i === 0)
-                        nuoviTamponi.push(tamponi[i])
-                    else
-                        nuoviTamponi.push(tamponi[i] - tamponi[i-1]);
-                    this.inconsistenzaRegione |= getFromEnd(nuoviTamponi,-1) < 0;
-                }
+                var nuoviTamponi = diffArray(this.andamentoRegioni.filter(e => e.denominazione_regione===regione).map(e => e.tamponi));
+                this.inconsistenzaRegione = nuoviTamponi.filter(e => e < 0).length > 0;
 
                 var traces = [
                     getTrace('Totale positivi', this.andamentoRegioni.filter(e => e.denominazione_regione===regione).map(e => e.totale_positivi)),

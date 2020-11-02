@@ -43,3 +43,41 @@ const getFromEnd = function (array, index) {
         throw 'Index must be a number in range [-array.length, -1]'
     return array[array.length+index];
 };
+
+/**
+ * Formats a date DD/MM/YYYY
+ * @param dateString
+ * @returns {string} formatted date
+ */
+const formatDateDDMMYYYY = function (dateString) {
+        var date = new Date(dateString);
+        return date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear();
+    };
+
+/**
+ * Formats a string from snake case to normal (this_is_an_example => This is an example)
+ * @param str
+ * @returns {string} formatted string
+ */
+const formatString = function (str) {
+    var strSpaces = str.replaceAll('_', ' ');
+    return strSpaces.charAt(0).toUpperCase() + strSpaces.substr(1, strSpaces.length);
+};
+
+/**
+ * Formats a number with italian convention (999.999.999,999)
+ * @param n
+ * @returns {*} formatted number
+ */
+const formatNumber = function (n) {
+    return Intl.NumberFormat().format(n);
+};
+
+/**
+ * Formats a percentage with 4 precision
+ * @param n
+ * @returns {string} formatted percentage
+ */
+const formatPercentage = function (n) {
+    return n.toPrecision(4)+'%';
+}

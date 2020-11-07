@@ -40,7 +40,7 @@
 
     <div class="p-3">
         <h2>Andamento pandemia COVID-19 in Italia</h2>
-        <p v-if="andamentoNazionale.length>0" class="text-secondary">Dati aggiornati al {{ getFromEnd(andamentoNazionale,-1).data | formatDateDDMMYYYY }}</p>
+        <p v-if="nazionale.andamento.length>0" class="text-secondary">Dati aggiornati al {{ getFromEnd(nazionale.andamento,-1).data | formatDateDDMMYYYY }}</p>
     </div>
 
     <div class="row m-5" v-if="loadingError">
@@ -64,7 +64,7 @@
         </li>
     </ul>
 
-    <div class="container-fluid py-5 my-2 my-lg-5" v-if="andamentoNazionale.length===0 && !loadingError">
+    <div class="container-fluid py-5 my-2 my-lg-5" v-if="nazionale.andamento.length===0 && !loadingError">
         <div class="row">
             <div class="col"></div>
             <div class="col text-center">
@@ -84,8 +84,13 @@
 
     <div class="tab-content" id="tabContent">
         <div class="tab-pane fade show active" id="nazionale" role="tabpanel" aria-labelledby="nazionale-tab">
-            <div class="px-lg-5"><div id="andamentoNazionale"></div></div>
-            <div v-if="andamentoNazionaleLatest!==null" class="row p-lg-5 p-4">
+
+            <div class="row">
+                <div class="col px-lg-5"><div id="andamentoNazionale"></div></div>
+                <div class="col px-lg-5"><div id="andamentoNazionalePercentuali"></div></div>
+            </div>
+
+            <div v-if="nazionale.andamentoLatest!==null" class="row p-lg-5 p-4">
                 <div class="col pr-lg-5">
                     <h4 class="pl-lg-5 py-2">Dati giornalieri</h4>
                     <table class="table table-striped table-sm">
@@ -96,7 +101,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr v-for="[key,value] in Object.entries(andamentoNazionaleLatest)">
+                        <tr v-for="[key,value] in Object.entries(nazionale.andamentoLatest)">
                             <th scope="col" class="pl-lg-5">{{ key | formatString }}</th>
                             <td class="text-right pr-lg-5">{{ value | formatNumber }}</td>
                         </tr>
@@ -113,9 +118,9 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr v-for="[key, value] in Object.entries(percentuali)">
+                        <tr v-for="[key, value] in Object.entries(nazionale.percentuali)">
                             <th scope="col" class="pl-lg-5">{{ key | formatString }}</th>
-                            <td class="text-right pr-lg-5">{{ value | formatPercentuale }}</td>
+                            <td class="text-right pr-lg-5">{{ value | formatPercentage }}</td>
                         </tr>
                         </tbody>
                     </table>
@@ -126,16 +131,16 @@
         <div class="tab-pane fade show active" id="regioni" role="tabpanel" aria-labelledby="regioni-tab">
             <div class="px-lg-5"><div id="andamentoRegioni"></div></div>
 
-            <p v-if="inconsistenzaRegione" class="text-center text-danger small mx-3">
+            <p v-if="regioni.inconsistenzaRegione" class="text-center text-danger small mx-3">
                 La traccia "Nuovi tamponi" presenta dei dati incongruenti: potrebbe esserci stato un riconteggio e una correzione in date successive
             </p>
 
-            <div v-if="andamentoRegioni.length>0" class="px-lg-5 px-5 input-group input-group-sm mb-3">
+            <div v-if="regioni.andamento.length>0" class="px-lg-5 px-5 input-group input-group-sm mb-3">
                 <div class="input-group-prepend">
                     <label class="input-group-text" for="regioneSelect">Regione</label>
                 </div>
                 <select id="regioneSelect" class="custom-select custom-select-sm col-sm-2" v-on:change="updateRegione">
-                    <option v-for="r in regioni">{{ r }}</option>
+                    <option v-for="r in regioni.regioni">{{ r }}</option>
                 </select>
             </div>
         </div>
@@ -143,12 +148,12 @@
         <div class="tab-pane fade show active" id="province" role="tabpanel" aria-labelledby="province-tab">
             <div class="px-lg-5"><div id="andamentoProvince"></div></div>
 
-            <div v-if="andamentoProvince.length>0" class="px-lg-5 px-5 input-group input-group-sm mb-3">
+            <div v-if="province.andamento.length>0" class="px-lg-5 px-5 input-group input-group-sm mb-3">
                 <div class="input-group-prepend">
                     <label class="input-group-text" for="provinciaSelect">Provincia</label>
                 </div>
                 <select id="provinciaSelect" class="custom-select custom-select-sm col-sm-2" v-on:change="updateProvincia">
-                    <option v-for="r in province">{{ r }}</option>
+                    <option v-for="r in province.province">{{ r }}</option>
                 </select>
             </div>
         </div>
@@ -197,50 +202,57 @@
     var app = new Vue({
         el: '#app',
         data: {
-            urlAndamentoNazionale: 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-json/dpc-covid19-ita-andamento-nazionale.json',
-            andamentoNazionale: [],
             data: [],
-            andamentoNazionaleLatest: null,
-            urlAndamentoRegioni: 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-json/dpc-covid19-ita-regioni.json',
-            andamentoRegioni: [],
-            regioni: [],
-            inconsistenzaRegione: false,
-            urlAndamentoProvince: 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-json/dpc-covid19-ita-province.json',
-            andamentoProvince: [],
-            province: [],
+            nazionale: {
+                url: 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-json/dpc-covid19-ita-andamento-nazionale.json',
+                andamento: [],
+                andamentoLatest: null,
+                percentuali: {}
+            },
+            regioni: {
+                url: 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-json/dpc-covid19-ita-regioni.json',
+                andamento: [],
+                regioni: [],
+                inconsistenza: false,
+            },
+            province: {
+                url: 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-json/dpc-covid19-ita-province.json',
+                andamento: [],
+                province: [],
+            },
             loadingError: false,
             timer: null,
             mobileAccess: false,
-            percentuali: {}
         },
         methods: {
             getFromEnd,
             getData: function () {
                 var self = this;
-                $.get(this.urlAndamentoNazionale, function (data) {
-                    self.andamentoNazionale = JSON.parse(data);
+                $.get(this.nazionale.url, function (data) {
+                    self.nazionale.andamento = JSON.parse(data);
                     self.processAndamentoNazionale();
                     self.processPercentuali();
                     self.plotAndamentoNazionale();
+                    self.plotAndamentoNazionalePercentuali();
                     clearTimeout(self.timer);
                     $('#tab').show()
                 }).fail(function () {
                     self.loadingError = true
                 });
 
-                $.get(this.urlAndamentoRegioni, function (data) {
-                    self.andamentoRegioni = JSON.parse(data);
+                $.get(this.regioni.url, function (data) {
+                    self.regioni.andamento = JSON.parse(data);
                     self.processAndamentoRegioni();
-                    self.plotAndamentoRegioni(self.regioni[0]);
+                    self.plotAndamentoRegioni(self.regioni.regioni[0]);
                     $('#regioni').removeClass('show active');
                 }).fail(function () {
                     self.loadingError = true
                 });
 
-                $.get(this.urlAndamentoProvince, function (data) {
-                    self.andamentoProvince = JSON.parse(data);
+                $.get(this.province.url, function (data) {
+                    self.province.andamento = JSON.parse(data);
                     self.processAndamentoProvince();
-                    self.plotAndamentoProvince(self.province[0]);
+                    self.plotAndamentoProvince(self.province.province[0]);
                     $('#province').removeClass('show active');
                 }).fail(function () {
                     self.loadingError = true
@@ -248,7 +260,7 @@
             },
             processAndamentoNazionale: function () {
                 if (this.data.length === 0)
-                    this.data = this.andamentoNazionale.map(e => e.data);
+                    this.data = this.nazionale.andamento.map(e => e.data);
 
                 var categorie = new Set([
                     "ricoverati_con_sintomi",
@@ -267,51 +279,54 @@
                     "casi_testati"
                 ]);
 
-                this.andamentoNazionaleLatest = {};
-                for ([key, value] of Object.entries(getFromEnd(this.andamentoNazionale,-1)))
+                this.nazionale.andamentoLatest = {};
+                for ([key, value] of Object.entries(getFromEnd(this.nazionale.andamento,-1)))
                     if (categorie.has(key.toString()))
-                        this.andamentoNazionaleLatest[key] = value;
+                        this.nazionale.andamentoLatest[key] = value;
             },
             processAndamentoRegioni: function () {
                 if (this.data.length === 0)
-                    this.data = this.andamentoNazionale.map(e => e.data);
+                    this.data = this.nazionale.andamento.map(e => e.data);
 
                 var reg = new Set();
-                for (var e of this.andamentoRegioni) {
+                for (var e of this.regioni.andamento) {
                     if (reg.has(e.denominazione_regione))
                         break;
                     reg.add(e.denominazione_regione);
-                    this.regioni.push(e.denominazione_regione);
+                    this.regioni.regioni.push(e.denominazione_regione);
                 }
             },
             processAndamentoProvince: function () {
                 if (this.data.length === 0)
-                    this.data = this.andamentoNazionale.map(e => e.data);
+                    this.data = this.nazionale.andamento.map(e => e.data);
 
                 var prov = new Set();
-                for (e of this.andamentoProvince) {
+                for (e of this.province.andamento) {
                     if (e.sigla_provincia != null)
                         prov.add(e.denominazione_provincia)
                 }
-                this.province = Array.from(prov);
-                this.province.sort();
+                this.province.province = Array.from(prov);
+                this.province.province.sort();
             },
             plotAndamentoNazionale: function () {
                 var traces = [
-                    getTrace('Totale casi', this.data, this.andamentoNazionale.map(e => e.totale_casi)),
-                    getTrace('Attualmente positivi', this.data, this.andamentoNazionale.map(e => e.totale_positivi)),
-                    getTrace('Nuovi positivi giornalieri', this.data, this.andamentoNazionale.map(e => e.nuovi_positivi)),
-                    getTrace('Nuovi tamponi giornalieri', this.data, diffArray(this.andamentoNazionale.map(e => e.tamponi)))
+                    getTrace('Totale casi', this.data, this.nazionale.andamento.map(e => e.totale_casi)),
+                    getTrace('Attualmente positivi', this.data, this.nazionale.andamento.map(e => e.totale_positivi)),
+                    getTrace('Nuovi positivi giornalieri', this.data, this.nazionale.andamento.map(e => e.nuovi_positivi)),
+                    getTrace('Nuovi tamponi giornalieri', this.data, diffArray(this.nazionale.andamento.map(e => e.tamponi)))
                 ];
                 traces[0].visible = 'legendonly';
                 traces[3].visible = 'legendonly';
 
                 Plotly.newPlot('andamentoNazionale', traces, getLayout('Andamento nazionale'), getConfig());
             },
+            plotAndamentoNazionalePercentuali: function () {
+
+            },
             plotAndamentoRegioni: function (regione) {
-                var andamentoRegione = this.andamentoRegioni.filter(e => e.denominazione_regione===regione);
+                var andamentoRegione = this.regioni.andamento.filter(e => e.denominazione_regione===regione);
                 var nuoviTamponi = diffArray(andamentoRegione.map(e => e.tamponi));
-                this.inconsistenzaRegione = nuoviTamponi.filter(e => e < 0).length > 0;
+                this.regioni.inconsistenza = nuoviTamponi.filter(e => e < 0).length > 0;
 
                 var traces = [
                     getTrace('Totale casi', this.data, andamentoRegione.map(e => e.totale_casi)),
@@ -326,13 +341,13 @@
             },
             updateRegione: function () {
                 var regione = $('#regioneSelect').find(':selected').text();
-                this.inconsistenzaRegione = false;
+                this.regione.inconsistenza = false;
                 this.plotAndamentoRegioni(regione);
             },
             plotAndamentoProvince: function (provincia) {
                 Plotly.newPlot(
                     'andamentoProvince',
-                    [getTrace('Totale casi', this.data, this.andamentoProvince
+                    [getTrace('Totale casi', this.data, this.province.andamento
                         .filter(e => e.denominazione_provincia===provincia)
                         .map(e => e.totale_casi))],
                     getLayout('Andamento provincia di ' + provincia),
@@ -343,20 +358,20 @@
                 this.plotAndamentoProvince(provincia);
             },
             processPercentuali: function () {
-                var nuoviDeceduti = getFromEnd(this.andamentoNazionale,-1).deceduti - getFromEnd(this.andamentoNazionale,-2).deceduti;
-                this.percentuali.decessi_per_caso_positivo =
-                    nuoviDeceduti / getFromEnd(this.andamentoNazionale,-2).totale_positivi * 100;
+                var nuoviDeceduti = getFromEnd(this.nazionale.andamento,-1).deceduti - getFromEnd(this.nazionale.andamento,-2).deceduti;
+                this.nazionale.percentuali.decessi_per_caso_positivo =
+                    nuoviDeceduti / getFromEnd(this.nazionale.andamento,-2).totale_positivi * 100;
 
-                this.percentuali.ospedalizzati_per_caso_positivo =
-                    getFromEnd(this.andamentoNazionale,-1).totale_ospedalizzati /
-                    getFromEnd(this.andamentoNazionale,-1).totale_positivi * 100;
+                this.nazionale.percentuali.ospedalizzati_per_caso_positivo =
+                    getFromEnd(this.nazionale.andamento,-1).totale_ospedalizzati /
+                    getFromEnd(this.nazionale.andamento,-1).totale_positivi * 100;
 
-                this.percentuali.terapia_intensiva_per_caso_positivo =
-                    getFromEnd(this.andamentoNazionale,-1).terapia_intensiva /
-                    getFromEnd(this.andamentoNazionale,-1).totale_positivi * 100;
+                this.nazionale.percentuali.terapia_intensiva_per_caso_positivo =
+                    getFromEnd(this.nazionale.andamento,-1).terapia_intensiva /
+                    getFromEnd(this.nazionale.andamento,-1).totale_positivi * 100;
             }
         },
-        filters: { formatDateDDMMYYYY, formatString, formatNumber, formatPercentuale: formatPercentage },
+        filters: { formatDateDDMMYYYY, formatString, formatNumber, formatPercentage },
         mounted() {
             var tab = $('#tab');
             this.mobileAccess = ( ( window.innerWidth <= 800 ) && ( window.innerHeight <= 600 ) );

@@ -131,7 +131,7 @@
         <div class="tab-pane fade show active" id="regioni" role="tabpanel" aria-labelledby="regioni-tab">
             <div class="px-lg-5"><div id="andamentoRegioni"></div></div>
 
-            <p v-if="regioni.inconsistenzaRegione" class="text-center text-danger small mx-3">
+            <p v-if="regioni.inconsistenza" class="text-center text-danger small mx-3">
                 La traccia "Nuovi tamponi" presenta dei dati incongruenti: potrebbe esserci stato un riconteggio e una correzione in date successive
             </p>
 
@@ -341,7 +341,7 @@
             },
             updateRegione: function () {
                 var regione = $('#regioneSelect').find(':selected').text();
-                this.regione.inconsistenza = false;
+                this.regioni.inconsistenza = false;
                 this.plotAndamentoRegioni(regione);
             },
             plotAndamentoProvince: function (provincia) {

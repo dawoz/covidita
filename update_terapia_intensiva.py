@@ -1,5 +1,6 @@
 import json
 import sys
+import traceback
 
 import requests
 from selenium import webdriver
@@ -76,9 +77,11 @@ if __name__ == '__main__':
 
     except NoSuchElementException:
         print('Element not found')
+        traceback.print_exc(file=sys.stdout)
 
     except TimeoutException:
         print('Page loading timeout')
+        traceback.print_exc(file=sys.stdout)
 
     finally:
         browser.close()

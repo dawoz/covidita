@@ -48,6 +48,7 @@ if __name__ == '__main__':
         WebDriverWait(browser, 10).until_not(lambda x: x.find_element_by_id('loadingGlassPane').is_displayed())
         browser.find_element_by_id('download-ToolbarButton').click()
 
+        WebDriverWait(browser, 10).until(lambda x: x.find_element_by_xpath('//*[contains(text(), "Dati")]').is_displayed())
         browser.find_element_by_xpath('//*[contains(text(), "Dati")]').click()
 
         browser.switch_to.window(browser.window_handles[1])
@@ -55,6 +56,8 @@ if __name__ == '__main__':
         WebDriverWait(browser, 10).until(lambda x: x.find_element_by_id('tab-view-table-data-0').is_displayed())
         browser.find_element_by_id('tab-view-table-data-0').click()
 
+        WebDriverWait(browser, 10).until(lambda x: x.find_element_by_xpath(
+            '//*[contains(text(), "Scarica tutte le righe come file di testo")]').is_displayed())
         link = browser.find_element_by_xpath(
             '//*[contains(text(), "Scarica tutte le righe come file di testo")]').get_attribute('href')
 

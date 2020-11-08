@@ -12,6 +12,10 @@ jobs:
      - uses: actions/setup-python@v2
        with:
          python-version: 3.6 #install the python needed
+     - name: setup dependencies
+       run: |
+         python -m pip install --upgrade pip
+         pip install requests selenium
      - run: |
          python update_terapia_intensiva.py
      - name: Commit and push file

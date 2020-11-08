@@ -23,7 +23,7 @@ jobs:
      - name: Commit and push file
        run: |
          git config --global user.name "Davide Zago"
-         git config --global user.email "***REMOVED***"
+         git config --global user.email ""
          git add terapia_intensiva.js
          git commit -m "Daily update of data: 'terapia intensiva'"
          git push

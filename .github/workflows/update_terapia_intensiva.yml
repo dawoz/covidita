@@ -2,7 +2,7 @@ name: update_terapia_intensiva
 
 on:
   schedule:
-  - cron: '*/3 * * * *' # runs at 00:00 UTC everyday
+  - cron: '*/3 * * * *'
 
 jobs:
   build:
@@ -14,7 +14,6 @@ jobs:
          python-version: 3.6 #install the python needed
      - name: setup dependencies
        run: |
-         sudo apt install firefox firefox-geckodriver
          python -m pip install --upgrade pip
          pip install requests selenium
      - run: |

@@ -1,0 +1,23 @@
+name: update_terapia_intensiva
+
+on:
+  schedule:
+  - cron: '*/3 * * * *' # runs at 00:00 UTC everyday
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+     - uses: actions/checkout@v2 # checkout the repository content to github runner.
+     - uses: actions/setup-python@v2
+       with:
+         python-version: 3.6 #install the python needed
+     - run: |
+         python update_terapia_intensiva.py
+     - name: Commit and push file
+       run: |
+         git config --global user.name "Davide Zago"
+         git config --global user.email "***REMOVED***"
+         git add update_terapia_intensiva.js
+         git commit -m "Daily update of data: 'terapia intensiva'"
+         git push

@@ -56,6 +56,7 @@ if __name__ == '__main__':
         WebDriverWait(browser, 10).until(lambda x: x.find_element_by_id('tab-view-table-data-0').is_displayed())
         browser.find_element_by_id('tab-view-table-data-0').click()
 
+        print(browser.page_content)
         WebDriverWait(browser, 10).until(lambda x: x.find_element_by_xpath(
             '//*[contains(text(), "Scarica tutte le righe come file di testo")]').is_displayed())
         link = browser.find_element_by_xpath(
@@ -81,10 +82,12 @@ if __name__ == '__main__':
     except NoSuchElementException:
         print('Element not found')
         traceback.print_exc(file=sys.stdout)
+        sys.exit(1)
 
     except TimeoutException:
         print('Page loading timeout')
         traceback.print_exc(file=sys.stdout)
+        sys.exit(1)
 
     finally:
         browser.close()

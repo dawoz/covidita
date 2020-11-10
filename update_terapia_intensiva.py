@@ -56,10 +56,7 @@ if __name__ == '__main__':
         WebDriverWait(browser, 10).until(lambda x: x.find_element_by_id('tab-view-table-data-0').is_displayed())
         browser.find_element_by_id('tab-view-table-data-0').click()
 
-        WebDriverWait(browser, 10).until(lambda x: x.find_element_by_xpath(
-            '//*[contains(text(), "Download all rows as a text file")]').is_displayed())
-        link = browser.find_element_by_xpath(
-            '//*[contains(text(), "Download all rows as a text file")]').get_attribute('href')
+        link = browser.find_element_by_class_name('csvLink_summary').get_attribute('href')
 
         resp = requests.get(link)
 

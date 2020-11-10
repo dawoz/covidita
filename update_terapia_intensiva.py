@@ -56,7 +56,7 @@ if __name__ == '__main__':
         WebDriverWait(browser, 10).until(lambda x: x.find_element_by_id('tab-view-table-data-0').is_displayed())
         browser.find_element_by_id('tab-view-table-data-0').click()
 
-        print(browser.page_content)
+        print(browser.page_source)
         WebDriverWait(browser, 10).until(lambda x: x.find_element_by_xpath(
             '//*[contains(text(), "Scarica tutte le righe come file di testo")]').is_displayed())
         link = browser.find_element_by_xpath(

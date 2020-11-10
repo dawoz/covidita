@@ -81,3 +81,19 @@ const formatNumber = function (n) {
 const formatPercentage = function (n) {
     return n.toPrecision(4)+'%';
 }
+
+/**
+ * Elementwise division of arrays
+ * @param a1
+ * @param a2
+ * @returns {[]}
+ */
+const divArray = function (a1, a2) {
+    if (a1 == null || a2 == null || !(a1 instanceof Array) || !(a2 instanceof Array)
+        || a1.length === 0 || a2.length === 0 || a1.length !== a2.length)
+        throw 'Parameters must be arrays of the same length (greater than zero)'
+    var r = [];
+    for(var i = 0; i < a1.length; i++)
+        r.push(a1[i]/a2[i]);
+    return r;
+}

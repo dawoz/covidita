@@ -21,12 +21,12 @@ jobs:
          python update_terapia_intensiva.py
      - name: Commit and push file
        run: |
-         echo geckodriver.log >> .gitignore;
-         echo .gitignore >> .gitignore;
-         if ! git diff-index --quiet HEAD --; then
+         if [[ $(git status --porcelain --untracked-files=no | wc -l ) -gt 0 ]]; then
            git config --global user.name "Davide Zago"
            git config --global user.email ""
            git add terapia_intensiva.js
            git commit -m "Daily update of 'terapia intensiva.js'"
            git push
-         fi
+         else
+           echo "The file is up to date";
+         fi;

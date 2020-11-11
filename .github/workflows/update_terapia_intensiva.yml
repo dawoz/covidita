@@ -21,6 +21,8 @@ jobs:
          python update_terapia_intensiva.py
      - name: Commit and push file
        run: |
+         echo geckodriver.log >> .gitignore;
+         echo .gitignore >> .gitignore;
          if ! git diff-index --quiet HEAD --; then
            git config --global user.name "Davide Zago"
            git config --global user.email ""

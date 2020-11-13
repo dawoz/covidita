@@ -2,10 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale = 1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta content="width=device-width, initial-scale = 1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
     <title>Panorama COVID-19 in Italia</title>
-    <meta name="description" content="Visualizzazione di dati e grafici sulla situazione in Italia della pandemia di COVID-19">
-    <link rel="icon" type="image/x-icon" href="virus.ico">
+    <meta content="Visualizzazione di dati e grafici sulla situazione in Italia della pandemia di COVID-19"
+          name="description">
+    <link href="virus.ico" rel="icon" type="image/x-icon">
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
@@ -19,16 +20,18 @@
 
     <noscript>
         <style>
-            body *{
+            body * {
                 visibility: hidden;
             }
+
             #noJs#noJs * {
                 visibility: visible;
             }
         </style>
         <div class="m-5" id="noJs">
             <div class="card p-4">
-                <p class="mt-2 text-danger text-center">JavaScript è disabilitato. Controlla le impostazioni del browser</p>
+                <p class="mt-2 text-danger text-center">JavaScript è disabilitato. Controlla le impostazioni del
+                    browser</p>
             </div>
         </div>
     </noscript>
@@ -39,8 +42,64 @@
 <div class="card m-lg-5 p-md-4 m-2 shadow-lg" id="app">
 
     <div class="p-3">
-        <h2>Andamento pandemia COVID-19 in Italia</h2>
-        <p v-if="nazionale.andamento.length>0" class="text-secondary">Dati aggiornati al {{ getFromEnd(nazionale.andamento,-1).data | formatDateDDMMYYYY }}</p>
+        <div class="d-inline">
+            <h2>Andamento pandemia COVID-19 in Italia</h2>
+            <!-- Button trigger modal -->
+            <button class="btn btn-outline-info float-right" data-target="#info" data-toggle="modal" type="button">
+                <svg class="bi bi-info-circle-fill mr-1" fill="currentColor" height="1em" viewBox="0 0 16 16"
+                     width="1em" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412l-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM8 5.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"
+                          fill-rule="evenodd"/>
+                </svg>
+                Fonti
+            </button>
+        </div>
+        <p class="text-secondary" v-if="nazionale.andamento.length>0">Dati aggiornati al {{
+            getFromEnd(nazionale.andamento,-1).data | formatDateDDMMYYYY }}</p>
+    </div>
+
+    <!-- Modal -->
+    <div aria-hidden="true" aria-labelledby="title" class="modal fade" id="info" role="dialog" tabindex="-1">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="title">Fonti</h5>
+                    <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        Le informazioni sull'andamento giornaliero su questo sito provengono dalla <a
+                            href="https://github.com/pcm-dpc/COVID-19" title="https://github.com/pcm-dpc/COVID-19">
+                        repository ufficiale Dati COVID-19 Italia
+                        <svg class="bi bi-link-45deg" fill="currentColor" height="1em" viewBox="0 0 16 16" width="1em"
+                             xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4.715 6.542L3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1.001 1.001 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4.018 4.018 0 0 1-.128-1.287z"/>
+                            <path d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 0 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 0 0-4.243-4.243L6.586 4.672z"/>
+                        </svg>
+                    </a> della protezione civile.
+                    </p>
+                    <p hidden>
+                        I dati sulla saturazione delle terapie intensive provengono dall'articolo sulle terapie
+                        intensive
+                        de <a
+                            href="https://www.infodata.ilsole24ore.com/2020/10/15/terapie-intensive-scopri-in-tempo-reale-quanti-posti-sono-occupati/"
+                            title="https://www.infodata.ilsole24ore.com/2020/10/15/terapie-intensive-scopri-in-tempo-reale-quanti-posti-sono-occupati/">Il
+                        Sole 24 ore
+                        <svg class="bi bi-link-45deg" fill="currentColor" height="1em" viewBox="0 0 16 16" width="1em"
+                             xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4.715 6.542L3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1.001 1.001 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4.018 4.018 0 0 1-.128-1.287z"/>
+                            <path d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 0 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 0 0-4.243-4.243L6.586 4.672z"/>
+                        </svg>
+                    </a>
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-dismiss="modal" type="button">Chiudi</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="row m-5" v-if="loadingError">
@@ -52,15 +111,18 @@
         <div class="col"></div>
     </div>
 
-    <ul class="nav nav-pills m-1" id="tab" role="tablist">
+    <ul class="nav nav-pills m-1 mb-4" id="tab" role="tablist">
         <li class="nav-item">
-            <a class="nav-link active" id="nazionale-tab" data-toggle="tab" href="#nazionale" role="tab" aria-controls="nazionale" aria-selected="true">Nazione</a>
+            <a aria-controls="nazionale" aria-selected="true" class="nav-link active" data-toggle="tab" href="#nazionale"
+               id="nazionale-tab" role="tab">Nazione</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" id="regioni-tab" data-toggle="tab" href="#regioni" role="tab" aria-controls="regioni" aria-selected="false">Regioni</a>
+            <a aria-controls="regioni" aria-selected="false" class="nav-link" data-toggle="tab" href="#regioni" id="regioni-tab"
+               role="tab">Regioni</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" id="province-tab" data-toggle="tab" href="#province" role="tab" aria-controls="province" aria-selected="false">Province</a>
+            <a aria-controls="province" aria-selected="false" class="nav-link" data-toggle="tab" href="#province" id="province-tab"
+               role="tab">Province</a>
         </li>
     </ul>
 
@@ -83,9 +145,9 @@
     </div>
 
     <div class="tab-content" id="tabContent">
-        <div class="tab-pane fade show active" id="nazionale" role="tabpanel" aria-labelledby="nazionale-tab">
+        <div aria-labelledby="nazionale-tab" class="tab-pane fade show active" id="nazionale" role="tabpanel">
 
-            <div class="row px-lg-5 py-4">
+            <div class="row px-lg-5">
 
                 <div class="col-lg">
                     <div id="andamentoNazionale"></div>
@@ -94,13 +156,13 @@
                         <table class="table table-striped table-sm">
                             <thead class="thead-dark">
                             <tr>
-                                <th scope="col" class="pl-lg-5">Descrizione</th>
-                                <th scope="col" class="text-right pr-lg-5">Dato</th>
+                                <th class="pl-lg-5" scope="col">Descrizione</th>
+                                <th class="text-right pr-lg-5" scope="col">Dato</th>
                             </tr>
                             </thead>
                             <tbody>
                             <tr v-for="[key,value] in Object.entries(nazionale.andamentoLatest)">
-                                <th scope="col" class="pl-lg-5">{{ key | formatString }}</th>
+                                <th class="pl-lg-5" scope="col">{{ key | formatString }}</th>
                                 <td class="text-right pr-lg-5">{{ value | formatNumber }}</td>
                             </tr>
                             </tbody>
@@ -115,13 +177,13 @@
                         <table class="table table-striped table-sm">
                             <thead class="thead-dark">
                             <tr>
-                                <th scope="col" class="pl-lg-5">Descrizione</th>
-                                <th scope="col" class="text-right pr-lg-5">Dato</th>
+                                <th class="pl-lg-5" scope="col">Descrizione</th>
+                                <th class="text-right pr-lg-5" scope="col">Dato</th>
                             </tr>
                             </thead>
                             <tbody>
                             <tr v-for="[key, value] in Object.entries(nazionale.percentuali)">
-                                <th scope="col" class="pl-lg-5">{{ key | formatString }}</th>
+                                <th class="pl-lg-5" scope="col">{{ key | formatString }}</th>
                                 <td class="text-right pr-lg-5">{{ value | formatPercentage }}</td>
                             </tr>
                             </tbody>
@@ -132,27 +194,32 @@
 
         </div>
 
-        <div class="tab-pane fade show active" id="regioni" role="tabpanel" aria-labelledby="regioni-tab">
-            <div class="px-lg-5"><div id="andamentoRegioni"></div></div>
+        <div aria-labelledby="regioni-tab" class="tab-pane fade show active" id="regioni" role="tabpanel">
+            <div class="px-lg-5">
+                <div id="andamentoRegioni"></div>
+            </div>
 
-            <div v-if="regioni.andamento.length>0" class="px-lg-5 px-5 input-group input-group-sm mb-3">
+            <div class="px-lg-5 px-5 input-group input-group-sm mb-3" v-if="regioni.andamento.length>0">
                 <div class="input-group-prepend">
                     <label class="input-group-text" for="regioneSelect">Regione</label>
                 </div>
-                <select id="regioneSelect" class="custom-select custom-select-sm col-sm-2" v-on:change="updateRegione">
+                <select class="custom-select custom-select-sm col-sm-2" id="regioneSelect" v-on:change="updateRegione">
                     <option v-for="r in regioni.regioni">{{ r }}</option>
                 </select>
             </div>
         </div>
 
-        <div class="tab-pane fade show active" id="province" role="tabpanel" aria-labelledby="province-tab">
-            <div class="px-lg-5"><div id="andamentoProvince"></div></div>
+        <div aria-labelledby="province-tab" class="tab-pane fade show active" id="province" role="tabpanel">
+            <div class="px-lg-5">
+                <div id="andamentoProvince"></div>
+            </div>
 
-            <div v-if="province.andamento.length>0" class="px-lg-5 px-5 input-group input-group-sm mb-3">
+            <div class="px-lg-5 px-5 input-group input-group-sm mb-3" v-if="province.andamento.length>0">
                 <div class="input-group-prepend">
                     <label class="input-group-text" for="provinciaSelect">Provincia</label>
                 </div>
-                <select id="provinciaSelect" class="custom-select custom-select-sm col-sm-2" v-on:change="updateProvincia">
+                <select class="custom-select custom-select-sm col-sm-2" id="provinciaSelect"
+                        v-on:change="updateProvincia">
                     <option v-for="r in province.province">{{ r }}</option>
                 </select>
             </div>
@@ -195,7 +262,7 @@
             y: y,
             type: 'scatter',
             name: title,
-            line: { shape: 'spline' },
+            line: {shape: 'spline'},
             visible: visible ? true : 'legendonly'
         }
     };
@@ -280,7 +347,7 @@
                 ]);
 
                 this.nazionale.andamentoLatest = {};
-                for ([key, value] of Object.entries(getFromEnd(this.nazionale.andamento,-1)))
+                for ([key, value] of Object.entries(getFromEnd(this.nazionale.andamento, -1)))
                     if (categorie.has(key.toString()))
                         this.nazionale.andamentoLatest[key] = value;
             },
@@ -313,7 +380,7 @@
                 if (regione == null)
                     andamento = this.nazionale.andamento;
                 else
-                    andamento = this.regioni.andamento.filter(e => e.denominazione_regione===regione)
+                    andamento = this.regioni.andamento.filter(e => e.denominazione_regione === regione)
 
                 const traces = [
                     getTrace('Totale casi', this.data, andamento.map(e => e.totale_casi), false),
@@ -329,15 +396,15 @@
             plotAndamentoNazionalePercentuali: function () {
                 const positivi = this.nazionale.andamento.map(e => e.totale_positivi);
                 var traces = [
-                    getTrace('Deceduti', this.data, divArray(diffArray(this.nazionale.andamento.map(e => e.deceduti)),positivi)),
-                    getTrace('Terapia intensiva', this.data, divArray(this.nazionale.andamento.map(e => e.terapia_intensiva),positivi)),
-                    getTrace('Ospedalizzati', this.data, divArray(this.nazionale.andamento.map(e => e.totale_ospedalizzati),positivi)),
-                    getTrace('Isolamento domiciliare', this.data, divArray(this.nazionale.andamento.map(e => e.isolamento_domiciliare),positivi))
+                    getTrace('Deceduti', this.data, divArray(diffArray(this.nazionale.andamento.map(e => e.deceduti)), positivi)),
+                    getTrace('Terapia intensiva', this.data, divArray(this.nazionale.andamento.map(e => e.terapia_intensiva), positivi)),
+                    getTrace('Ospedalizzati', this.data, divArray(this.nazionale.andamento.map(e => e.totale_ospedalizzati), positivi)),
+                    getTrace('Isolamento domiciliare', this.data, divArray(this.nazionale.andamento.map(e => e.isolamento_domiciliare), positivi))
                 ];
                 traces.forEach(t => t.hovertemplate = '%{y:,.4%}');
 
                 var layout = getLayout('Percentuali rispetto agli attualmente positivi');
-                layout.yaxis = { tickformat: ',.0%' };
+                layout.yaxis = {tickformat: ',.0%'};
 
                 Plotly.newPlot('andamentoNazionalePercentuali', traces, layout, getConfig());
             },
@@ -349,7 +416,7 @@
                 Plotly.newPlot(
                     'andamentoProvince',
                     [getTrace('Totale casi', this.data, this.province.andamento
-                        .filter(e => e.denominazione_provincia===provincia)
+                        .filter(e => e.denominazione_provincia === provincia)
                         .map(e => e.totale_casi))],
                     getLayout('Andamento provincia di ' + provincia),
                     getConfig());
@@ -359,27 +426,27 @@
                 this.plotAndamentoProvince(provincia);
             },
             processPercentuali: function () {
-                var nuoviDeceduti = getFromEnd(this.nazionale.andamento,-1).deceduti - getFromEnd(this.nazionale.andamento,-2).deceduti;
+                var nuoviDeceduti = getFromEnd(this.nazionale.andamento, -1).deceduti - getFromEnd(this.nazionale.andamento, -2).deceduti;
                 this.nazionale.percentuali.decessi_per_caso_positivo =
-                    nuoviDeceduti / getFromEnd(this.nazionale.andamento,-2).totale_positivi * 100;
+                    nuoviDeceduti / getFromEnd(this.nazionale.andamento, -2).totale_positivi * 100;
 
                 this.nazionale.percentuali.ospedalizzati_per_caso_positivo =
-                    getFromEnd(this.nazionale.andamento,-1).totale_ospedalizzati /
-                    getFromEnd(this.nazionale.andamento,-1).totale_positivi * 100;
+                    getFromEnd(this.nazionale.andamento, -1).totale_ospedalizzati /
+                    getFromEnd(this.nazionale.andamento, -1).totale_positivi * 100;
 
                 this.nazionale.percentuali.terapia_intensiva_per_caso_positivo =
-                    getFromEnd(this.nazionale.andamento,-1).terapia_intensiva /
-                    getFromEnd(this.nazionale.andamento,-1).totale_positivi * 100;
+                    getFromEnd(this.nazionale.andamento, -1).terapia_intensiva /
+                    getFromEnd(this.nazionale.andamento, -1).totale_positivi * 100;
             }
         },
-        filters: { formatDateDDMMYYYY, formatString, formatNumber, formatPercentage },
+        filters: {formatDateDDMMYYYY, formatString, formatNumber, formatPercentage},
         mounted() {
             var tab = $('#tab');
-            this.mobileAccess = ( ( window.innerWidth <= 800 ) && ( window.innerHeight <= 600 ) );
+            this.mobileAccess = ((window.innerWidth <= 800) && (window.innerHeight <= 600));
             if (this.mobileAccess)
                 tab.addClass('nav-fill');
             tab.hide();
-            this.timer = setTimeout(() => this.loadingError = true,10000)
+            this.timer = setTimeout(() => this.loadingError = true, 10000)
             this.getData();
         }
     })

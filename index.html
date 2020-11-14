@@ -156,9 +156,6 @@
 
         <!-- TAB andamento regioni -->
         <div aria-labelledby="regioni-tab" class="tab-pane fade show active" id="regioni" role="tabpanel">
-            <div class="px-lg-5">
-                <div id="andamentoRegioni"></div>
-            </div>
             <div class="px-lg-5 px-5 input-group input-group-sm mb-3" v-if="regioni.andamento.length>0">
                 <div class="input-group-prepend">
                     <label class="input-group-text" for="regioneSelect">Regione</label>
@@ -167,12 +164,13 @@
                     <option v-for="r in regioni.regioni">{{ r }}</option>
                 </select>
             </div>
+            <andamento content1-id="andamentoRegioni" content2-id="andamentoRegioniPercentuali"
+                       v-bind:content1-obj="regioni.andamentoLatest" v-bind:content2-obj="regioni.percentuali">
+            </andamento>
         </div>
 
+        <!-- TAB andamento province -->
         <div aria-labelledby="province-tab" class="tab-pane fade show active" id="province" role="tabpanel">
-            <div class="px-lg-5">
-                <div id="andamentoProvince"></div>
-            </div>
             <div class="px-lg-5 px-5 input-group input-group-sm mb-3" v-if="province.andamento.length>0">
                 <div class="input-group-prepend">
                     <label class="input-group-text" for="provinciaSelect">Provincia</label>
@@ -181,6 +179,9 @@
                         v-on:change="updateProvincia">
                     <option v-for="r in province.province">{{ r }}</option>
                 </select>
+            </div>
+            <div class="px-lg-5">
+                <div id="andamentoProvince"></div>
             </div>
         </div>
 
@@ -206,6 +207,8 @@
             regioni: {
                 url: 'https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-json/dpc-covid19-ita-regioni.json',
                 andamento: [],
+                andamentoLatest: null,
+                percentuali: null,
                 regioni: []
             },
             province: {
@@ -223,10 +226,10 @@
                 var self = this;
                 $.get(this.nazionale.url, function (data) {
                     self.nazionale.andamento = JSON.parse(data);
-                    self.processAndamentoNazionale();
-                    self.processPercentuali();
+                    self.processAndamentoLatest(null);
+                    self.processPercentuali(null);
                     self.plotAndamento(null, 'andamentoNazionale', 'Andamento nazionale');
-                    self.plotAndamentoNazionalePercentuali();
+                    self.plotAndamentoPercentuali(null, 'andamentoNazionalePercentuali');
                     clearTimeout(self.timer);
                     $('#tab').show()
                 }).fail(function () {
@@ -235,8 +238,11 @@
 
                 $.get(this.regioni.url, function (data) {
                     self.regioni.andamento = JSON.parse(data);
-                    self.processAndamentoRegioni();
+                    self.processListaRegioni();
+                    self.processAndamentoLatest(self.regioni.regioni[0]);
+                    self.processPercentuali(self.regioni.regioni[0]);
                     self.plotAndamento(self.regioni.regioni[0], 'andamentoRegioni', 'Andamento regione ' + self.regioni.regioni[0]);
+                    self.plotAndamentoPercentuali(self.regioni.regioni[0], 'andamentoRegioniPercentuali');
                     $('#regioni').removeClass('show active');
                 }).fail(function () {
                     self.loadingError = true
@@ -251,9 +257,14 @@
                     self.loadingError = true
                 });
             },
-            processAndamentoNazionale: function () {
+            processAndamentoLatest: function (regione) {
                 if (this.data.length === 0)
                     this.data = this.nazionale.andamento.map(e => e.data);
+
+                var andamento = regione == null
+                    ? this.nazionale.andamento
+                    : this.regioni.andamento.filter(e => e.denominazione_regione === regione);
+                var andamentoLatest = {};
 
                 var categorie = new Set([
                     "ricoverati_con_sintomi",
@@ -272,12 +283,16 @@
                     "casi_testati"
                 ]);
 
-                this.nazionale.andamentoLatest = {};
-                for ([key, value] of Object.entries(getFromEnd(this.nazionale.andamento, -1)))
+                for ([key, value] of Object.entries(getFromEnd(andamento, -1)))
                     if (categorie.has(key.toString()))
-                        this.nazionale.andamentoLatest[key] = value;
+                        andamentoLatest[key] = value;
+
+                if (regione == null)
+                    this.nazionale.andamentoLatest = andamentoLatest;
+                else
+                    this.regioni.andamentoLatest = andamentoLatest;
             },
-            processAndamentoRegioni: function () {
+            processListaRegioni: function () {
                 if (this.data.length === 0)
                     this.data = this.nazionale.andamento.map(e => e.data);
 
@@ -302,11 +317,9 @@
                 this.province.province.sort();
             },
             plotAndamento: function (regione, elementId, plotTitle) {
-                var andamento;
-                if (regione == null)
-                    andamento = this.nazionale.andamento;
-                else
-                    andamento = this.regioni.andamento.filter(e => e.denominazione_regione === regione)
+                var andamento = regione == null
+                    ? this.nazionale.andamento
+                    : this.regioni.andamento.filter(e => e.denominazione_regione === regione);
 
                 const traces = [
                     getTrace('Totale casi', this.data, andamento.map(e => e.totale_casi), false),
@@ -319,24 +332,29 @@
                 ];
                 Plotly.newPlot(elementId, traces, getLayout(plotTitle), getConfig());
             },
-            plotAndamentoNazionalePercentuali: function () {
-                const positivi = this.nazionale.andamento.map(e => e.totale_positivi);
+            plotAndamentoPercentuali: function (regione, elementId) {
+                var andamento = regione == null ? this.nazionale.andamento
+                    : this.regioni.andamento.filter(e => e.denominazione_regione === regione);
+                const positivi = andamento.map(e => e.totale_positivi);
                 var traces = [
-                    getTrace('Deceduti', this.data, divArray(diffArray(this.nazionale.andamento.map(e => e.deceduti)), positivi)),
-                    getTrace('Terapia intensiva', this.data, divArray(this.nazionale.andamento.map(e => e.terapia_intensiva), positivi)),
-                    getTrace('Ospedalizzati', this.data, divArray(this.nazionale.andamento.map(e => e.totale_ospedalizzati), positivi)),
-                    getTrace('Isolamento domiciliare', this.data, divArray(this.nazionale.andamento.map(e => e.isolamento_domiciliare), positivi))
+                    getTrace('Deceduti', this.data, divArray(diffArray(andamento.map(e => e.deceduti)), positivi)),
+                    getTrace('Terapia intensiva', this.data, divArray(andamento.map(e => e.terapia_intensiva), positivi)),
+                    getTrace('Ospedalizzati', this.data, divArray(andamento.map(e => e.totale_ospedalizzati), positivi)),
+                    getTrace('Isolamento domiciliare', this.data, divArray(andamento.map(e => e.isolamento_domiciliare), positivi))
                 ];
                 traces.forEach(t => t.hovertemplate = '%{y:,.4%}');
 
                 var layout = getLayout('Percentuali rispetto agli attualmente positivi');
                 layout.yaxis = {tickformat: ',.0%'};
 
-                Plotly.newPlot('andamentoNazionalePercentuali', traces, layout, getConfig());
+                Plotly.newPlot(elementId, traces, layout, getConfig());
             },
             updateRegione: function () {
                 var regione = $('#regioneSelect').find(':selected').text();
+                this.processAndamentoLatest(regione);
+                this.processPercentuali(regione);
                 this.plotAndamento(regione, 'andamentoRegioni', 'Andamento regione ' + regione);
+                this.plotAndamentoPercentuali(regione, 'andamentoRegioniPercentuali');
             },
             plotAndamentoProvince: function (provincia) {
                 Plotly.newPlot(
@@ -351,19 +369,25 @@
                 var provincia = $('#provinciaSelect').find(':selected').text();
                 this.plotAndamentoProvince(provincia);
             },
-            processPercentuali: function () {
-                this.nazionale.percentuali = {};
-                var nuoviDeceduti = getFromEnd(this.nazionale.andamento, -1).deceduti - getFromEnd(this.nazionale.andamento, -2).deceduti;
-                this.nazionale.percentuali.decessi_per_caso_positivo =
-                    nuoviDeceduti / getFromEnd(this.nazionale.andamento, -2).totale_positivi * 100;
+            processPercentuali: function (regione) {
+                var andamento = regione == null ? this.nazionale.andamento
+                    : this.regioni.andamento.filter(e => e.denominazione_regione === regione);
+                var percentuali = {};
 
-                this.nazionale.percentuali.ospedalizzati_per_caso_positivo =
-                    getFromEnd(this.nazionale.andamento, -1).totale_ospedalizzati /
-                    getFromEnd(this.nazionale.andamento, -1).totale_positivi * 100;
+                percentuali.decessi_per_caso_positivo =
+                    (getFromEnd(andamento, -1).deceduti - getFromEnd(andamento, -2).deceduti)
+                    / getFromEnd(andamento, -2).totale_positivi * 100;
 
-                this.nazionale.percentuali.terapia_intensiva_per_caso_positivo =
-                    getFromEnd(this.nazionale.andamento, -1).terapia_intensiva /
-                    getFromEnd(this.nazionale.andamento, -1).totale_positivi * 100;
+                percentuali.ospedalizzati_per_caso_positivo = getFromEnd(andamento, -1).totale_ospedalizzati
+                    / getFromEnd(andamento, -1).totale_positivi * 100;
+
+                percentuali.terapia_intensiva_per_caso_positivo = getFromEnd(andamento, -1).terapia_intensiva
+                    / getFromEnd(andamento, -1).totale_positivi * 100;
+
+                if (regione == null)
+                    this.nazionale.percentuali = percentuali;
+                else
+                    this.regioni.percentuali = percentuali;
             }
         },
         filters: {formatDateDDMMYYYY},
